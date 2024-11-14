@@ -1,12 +1,10 @@
-//2020113437 taewon park
+// 2020113437 taewon park
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <ctype.h>
 #include <pwd.h>
-#include <ncurses.h>
-#include <signal.h>
 
 typedef struct Process
 {
@@ -96,7 +94,7 @@ void get_total_memory()
         perror("Unable to open /proc/meminfo");
     }
 }
-// 프로세스 정보를 읽어오는 함수
+
 // 프로세스 정보를 읽어오는 함수
 Process *read_processes(int *total_processes)
 {
@@ -229,41 +227,9 @@ float calculate_mem_usage(Process *p)
     return (float)p->res / total_mem * 100;
 }
 
-// 터미널 크기 변경 시 재조정 함수
-void resize_handler(int signum)
-{
-    // 화면을 지우고, 새로운 헤더를 출력합니다.
-    clear();
-    printw(" PID  | User      |   PR   |   NI   |   VIRT   |   RES    |   SHR    | State |  %%CPU  |  %%MEM  |  TIME+   | COMMAND\n");
-    printw("----------------------------------------------------------------------------------------------------\n");
-
-    // 프로세스 정보를 다시 출력합니다.
-    Process *p = processes; // 전역 변수로 프로세스 목록을 접근
-    while (p != NULL)
-    {
-        printw("%5d | %-10s | %6d | %6d | %10s | %10s | %10s | %c    | %6.2f%% | %6.2f%% | %8lu | %-20s\n",
-               p->pid, p->user, p->pr, p->ni,
-               formatSize(p->virt), formatSize(p->res), formatSize(p->shr),
-               p->state, p->cpu_percent, p->mem_percent, p->time, p->command);
-        p = p->next;
-    }
-
-    refresh(); // 화면 업데이트
-}
-
 // 메인 함수
 int main()
 {
-    // ncurses 초기화
-    // ncurses 초기화
-    initscr();
-    cbreak();
-    noecho();
-    keypad(stdscr, TRUE);
-
-    // SIGWINCH 시그널 핸들러 등록
-    signal(SIGWINCH, resize_handler);
-
     // 전체 CPU 시간과 메모리 크기 가져오기
     get_total_cpu_time();
     get_total_memory();
@@ -280,65 +246,21 @@ int main()
         p = p->next;
     }
 
-    // 스크롤 관련 변수
-    int start_line = 0;                    // 현재 스크롤 위치
-    int max_lines = LINES - 4;             // 화면에 표시할 최대 프로세스 수
-    int displayed_lines = total_processes; // 실제로 출력된 프로세스 수
-    int scroll_offset = 0;                 // 오른쪽 스크롤 오프셋
+    // 결과 출력
+    printf(" PID  | User      |   PR   |   NI   |   VIRT   |   RES    |   SHR    | State |  %%CPU  |  %%MEM  |  TIME+   | COMMAND\n");
+    printf("----------------------------------------------------------------------------------------------------\n");
 
-    // 결과 출력 루프
-    while (1)
+    // 프로세스 정보 출력
+    p = processes;
+    while (p != NULL)
     {
-        clear();
-        printw(" PID  | User      |   PR   |   NI   |   VIRT   |   RES    |   SHR    | State |  %%CPU  |  %%MEM  |  TIME+   | COMMAND\n");
-        printw("----------------------------------------------------------------------------------------------------\n");
-
-        // 프로세스 정보 출력
-        p = processes;
-        int line_count = 0;
-        while (p != NULL)
-        {
-            if (line_count >= start_line && line_count < start_line + max_lines)
-            {
-                // 오른쪽으로 스크롤된 부분을 출력
-                printw("%5d | %-10s | %6d | %6d | %10s | %10s | %10s | %c    | %6.2f%% | %6.2f%% | %8lu | %-20s\n",
-                       p->pid, p->user, p->pr, p->ni,
-                       formatSize(p->virt), formatSize(p->res), formatSize(p->shr),
-                       p->state, p->cpu_percent, p->mem_percent, p->time, p->command + scroll_offset);
-            }
-            p = p->next;
-            line_count++;
-        }
-
-        refresh(); // 화면 업데이트
-
-        int ch = getch(); // 사용자 입력 대기
-        if (ch == KEY_UP && start_line > 0)
-        {
-            start_line--; // 위로 스크롤
-        }
-        else if (ch == KEY_DOWN && start_line < displayed_lines - max_lines)
-        {
-            start_line++; // 아래로 스크롤
-        }
-        else if (ch == KEY_RIGHT)
-        {
-            scroll_offset += 1; // 오른쪽으로 스크롤
-        }
-        else if (ch == KEY_LEFT)
-        {
-            if (scroll_offset > 0)
-            {
-                scroll_offset -= 1; // 왼쪽으로 스크롤
-            }
-        }
-        else if (ch == 'q')
-        {
-            break; // 'q'를 누르면 종료
-        }
+        printf("%5d | %-10s | %6d | %6d | %10s | %10s | %10s | %c    | %6.2f%% | %6.2f%% | %8lu | %-20s\n",
+               p->pid, p->user, p->pr, p->ni,
+               formatSize(p->virt), formatSize(p->res), formatSize(p->shr),
+               p->state, p->cpu_percent, p->mem_percent, p->time, p->command);
+        p = p->next; // 다음 프로세스로 이동
     }
 
     free_processes(processes); // 메모리 해제
-    endwin();                  // ncurses 종료
     return 0;
 }
