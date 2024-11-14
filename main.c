@@ -34,21 +34,14 @@ Process *processes;   // 전역 변수로 프로세스 목록
 const char *formatSize(unsigned long size)
 {
     static char buffer[20];
-    if (size >= 1024 * 1024 * 1024)
+
+    if (size >= 99999)
     {
-        snprintf(buffer, sizeof(buffer), "%.2fG", size / (1024 * 1024 * 1024));
-    }
-    else if (size >= 1024 * 1024)
-    {
-        snprintf(buffer, sizeof(buffer), "%.2fM", size / (1024 * 1024));
-    }
-    else if (size >= 1024)
-    {
-        snprintf(buffer, sizeof(buffer), "%.2fK", size / 1024);
+        snprintf(buffer, sizeof(buffer), "%ldM", size / 1024);
     }
     else
     {
-        snprintf(buffer, sizeof(buffer), "%luB", size);
+        snprintf(buffer, sizeof(buffer), "%lu", size);
     }
     return buffer;
 }
@@ -257,7 +250,7 @@ int main()
     {
         printf("%5d | %-20s | %6d | %6d | %10s | %10s | %10s | %c     | %-20s\n",
                p->pid, p->user, p->pr, p->ni,
-               "------", "------", "------",
+               formatSize(p->virt), "------", "------",
                p->state, "------");
         p = p->next; // 다음 프로세스로 이동
     }
