@@ -9,6 +9,7 @@
 typedef struct Process
 {
     int pid;              // PID: 프로세스 식별자
+    int ppid;             // PPID: 부모 프로세스
     char user[32];        // USER: 프로세스의 소유자
     int pr;               // PR: 프로세스의 우선 순위
     int ni;               // NI: nice 값
@@ -118,14 +119,14 @@ Process *read_processes(int *total_processes)
             {
                 Process *p = malloc(sizeof(Process));
                 unsigned long utime, stime;
-                fscanf(file1, "%d %*s %*c %d %lu %*d %*d %*d %*d %*d %*d %lu %*s %*u %*u %*u %*u %*u %*u %*u",
-                       &p->pid, &p->pr, &utime, &stime);
+
+                fscanf(file1, "%d %*s %c %d %*d %*d %*d %*d %*d %*d %lu %lu %*u %*u %*u %*u %*d %d %d",
+                       &p->pid, &p->state, &p->ppid, &utime, &stime, &p->pr, &p->ni);
+
                 p->utime = utime;
                 p->stime = stime;
                 p->time = utime + stime;
 
-                fseek(file1, 0, SEEK_SET);
-                fscanf(file1, "%*d %*s %c", &p->state);
                 p->next = NULL;
 
                 // UID 및 상태 확인
@@ -181,7 +182,7 @@ Process *read_processes(int *total_processes)
                     strncpy(p->command, "unknown", sizeof(p->command) - 1);
                     p->command[sizeof(p->command) - 1] = '\0';
                 }
-
+                p->command[sizeof(p->command) - 1] = '\0';
                 // 프로세스 목록에 추가
                 if (!head)
                 {
@@ -247,17 +248,17 @@ int main()
     }
 
     // 결과 출력
-    printf(" PID  | User      |   PR   |   NI   |   VIRT   |   RES    |   SHR    | State |  %%CPU  |  %%MEM  |  TIME+   | COMMAND\n");
+    printf(" PID  | User              |   PR   |   NI   |   VIRT   |   RES    |   SHR    | State |  %%CPU  |  %%MEM  |  TIME+   | COMMAND\n");
     printf("----------------------------------------------------------------------------------------------------\n");
 
     // 프로세스 정보 출력
     p = processes;
     while (p != NULL)
     {
-        printf("%5d | %-10s | %6d | %6d | %10s | %10s | %10s | %c    | %6.2f%% | %6.2f%% | %8lu | %-20s\n",
+        printf("%5d | %-20s | %6d | %6d | %10s | %10s | %10s | %c     | %-20s\n",
                p->pid, p->user, p->pr, p->ni,
-               formatSize(p->virt), formatSize(p->res), formatSize(p->shr),
-               p->state, p->cpu_percent, p->mem_percent, p->time, p->command);
+               "------", "------", "------",
+               p->state, "------");
         p = p->next; // 다음 프로세스로 이동
     }
 
