@@ -36,15 +36,15 @@ const char *formatSize(unsigned long size)
     static char buffer[20];
     if (size >= 1024 * 1024 * 1024)
     {
-        snprintf(buffer, sizeof(buffer), "%.2fG", size / (1024.0 * 1024 * 1024));
+        snprintf(buffer, sizeof(buffer), "%.2fG", size / (1024 * 1024 * 1024));
     }
     else if (size >= 1024 * 1024)
     {
-        snprintf(buffer, sizeof(buffer), "%.2fM", size / (1024.0 * 1024));
+        snprintf(buffer, sizeof(buffer), "%.2fM", size / (1024 * 1024));
     }
     else if (size >= 1024)
     {
-        snprintf(buffer, sizeof(buffer), "%.2fK", size / 1024.0);
+        snprintf(buffer, sizeof(buffer), "%.2fK", size / 1024);
     }
     else
     {
