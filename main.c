@@ -173,7 +173,6 @@ Process *read_processes(int *total_processes)
                 else
                 {
                     strncpy(p->command, "unknown", sizeof(p->command) - 1);
-                    p->command[sizeof(p->command) - 1] = '\0';
                 }
                 p->command[sizeof(p->command) - 1] = '\0';
                 // 프로세스 목록에 추가
