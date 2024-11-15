@@ -253,7 +253,7 @@ int main()
                p->state, "------");
         p = p->next; // 다음 프로세스로 이동
     }
-
+//ㅇㄹㅁㅇㄴㄹ
     free_processes(processes); // 메모리 해제
     return 0;
 }
